@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/config.dart';
@@ -74,8 +75,12 @@ class FlutterContacts {
     bool withAccounts = false,
     bool sorted = true,
     bool deduplicateProperties = true,
-  }) async =>
-      _select(
+  }) async {
+    final token = RootIsolateToken.instance!;
+
+    return await Isolate.run(() async {
+      BackgroundIsolateBinaryMessenger.ensureInitialized(token);
+      return await _select(
         withProperties: withProperties,
         withThumbnail: withThumbnail,
         withPhoto: withPhoto,
@@ -84,6 +89,8 @@ class FlutterContacts {
         sorted: sorted,
         deduplicateProperties: deduplicateProperties,
       );
+    });
+  }
 
   /// Fetches one contact.
   ///
